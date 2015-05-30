@@ -31,7 +31,7 @@ var depoLink = 'js/script.js';
 function cmprss(compr,comm,data){//compression function
 
 	if(compr === "compressed"){
-		var newString = data.replace(/(\r\n|\n|\r|\t)/gm, "");
+		var newString = data.replace(/(\r\n|\n|\r|\t|\s)/gm, "");
 
 		writeFile(newString);
 	}
