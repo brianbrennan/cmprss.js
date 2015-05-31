@@ -17,7 +17,6 @@ var fs = require('fs');
 
 var options = {//default options for compression
 	"compression": "compressed",
-	"comments": "no",
 	"input": "js/scripts/script.js",
 	"output": "js/script.js",
 	"encoding": "utf8",
@@ -29,11 +28,22 @@ var options = {//default options for compression
 function cmprss(compr,comm,data){//compression function
 
 
-	if(compr === "compressed"){
-		var newString = data.replace(/(\r\n|\n|\r|\t)/gm, "");
 
-		writeFile(newString);
+	if(comm === "yes"){
+
+	}else if(comm === "no"){
+		data = removeComments(data);
 	}
+
+	if(compr === "compressed"){
+		data = data.replace(/(\r\n|\n|\r|\t)/gm, "");
+		data = data.replace(/\s+/g," ");
+	} else if(compr === "compact"){
+		data = data.replace(/\n\s*\n/g, '\n');
+	} else if(compr === "none"){
+	}
+
+	writeFile(data);
 }
 
 function writeFile(data){
@@ -42,7 +52,7 @@ function writeFile(data){
 	});
 }
 
-function checkArgv(){
+function checkArgv(){//checks the arguments sent in from the process, essentially displays all menus
 	var startTime = process.hrtime();
 	var args = process.argv.slice(2);
 	
@@ -65,20 +75,11 @@ function checkArgv(){
 	}
 
 	if(args.length > 1){
-		if(args[1] === "yes" || args[1] === "no"){
-			options.comments = args[1];
-		} else{
-			console.error("UNKOWN INPUT: " + args[1] + "\n \t TYPE -help FOR LIST OF COMMANDS AND SETTINGS.");
-			return
-		}
+		options.output = args[3];
 	}
 
 	if(args.length > 2){
 		options.input = args[2];
-	}
-
-	if(args.length > 3){
-		options.output = args[3];
 	}
 
 	fs.readFile(options.input,options, function (err, data) {
@@ -92,17 +93,17 @@ function checkArgv(){
 
 	var endTime = process.hrtime(startTime);
 
-	console.info("Execution time: %ds %dms", endTime[0], endTime[1]/1000000);
+	console.info("Compression time: %ds %dms", endTime[0], endTime[1]/1000000);
 }
 
-function help(){
+function help(){//displays both commands and settings
 	console.log("\n \n \t \t \t CMPRSS.JS \n \t------------------------------------------ \n");
 	
 	commands();
 	settings();
 }
 
-function settings(){
+function settings(){//displays all possible settings
 	console.log("\tList of Default Settings: \n");
 	console.log("\tcompressed\t \t \t compresses with most compression \n");
 	console.log("\tno\t \t \t \t no comments are preserved in the  \n \t \t \t \t \t writing of the new file\n");
@@ -116,13 +117,14 @@ function settings(){
 	console.log("\tyes\t \t \t \t preserves comments in  \n \t \t \t \t \t writing of the new file, must be second setting\n");
 	console.log("\tinput/link/files.js\t \t input link file location, must be third setting\n");
 	console.log("\toutput/file.js\t \t \t output link location, must be fourth setting\n");
-	console.log("");
+	console.log("\n");
 }
 
-function commands(){
+function commands(){//displays all possible commands
 	console.log("\tList of Commands: \n");
 	console.log("\thelp | -help | -h | h \t \t Shows list of commands \n");
 	console.log("\tsettings | -settings | -s | s \t Shows list of settings \n");
+	console.log("\n");
 }
 
 

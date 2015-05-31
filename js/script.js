@@ -1,1 +1,9 @@
-$(document).ready(function(){  $('.overlay span').click(function(){    hideOverlay();  });  $('.overlay').click(function(){    hideOverlay();  });  $('.overlay .pane .x').click(function(){    hideOverlay();  })  $('.overlay .pane').click(function(){    event.stopPropagation();  });  });function showOverlay(){  $('.overlay').css('visibility','visible');  $('.overlay').css('opacity','1');}function hideOverlay(){  $('.overlay').css('opacity','0');  $('.overlay').css('visibility','hidden');  console.log($('.overlay .pane img').width());}function formSubmit(){  $raw = $('contactForm').html();  $('#submit').html('<p>Thank you for your message!</p>');}
+var red = "#FF5B71";
+$(document).ready(function(){
+	$('h2 > a').hover(function(){
+		$(this).parent().next().addClass('red');
+	},function(){
+		$(this).parent().next().removeClass('red');
+	});
+});
+nt
