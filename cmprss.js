@@ -17,6 +17,7 @@ var fs = require('fs');
 
 var options = {//default options for compression
 	"compression": "compressed",
+	"comments": "no",
 	"input": "js/scripts/script.js",
 	"output": "js/script.js",
 	"encoding": "utf8",
@@ -29,10 +30,8 @@ function cmprss(compr,comm,data){//compression function
 
 
 
-	if(comm === "yes"){
-
-	}else if(comm === "no"){
-		data = removeComments(data);
+	if(comm === "no"){
+		data = stripComments(data);
 	}
 
 	if(compr === "compressed"){
@@ -45,6 +44,151 @@ function cmprss(compr,comm,data){//compression function
 
 	writeFile(data);
 }
+
+function stripComments(stringIN) {//TAKEN FROM http://upshots.org/javascript/javascript-regexp-to-remove-comments#solution, from commentor bob;
+	var SLASH = '/';
+	var BACK_SLASH = '\\';
+	var STAR = '*';
+	var DOUBLE_QUOTE = '"';
+	var SINGLE_QUOTE = "'";
+	var NEW_LINE = '\n';
+	var CARRIAGE_RETURN = '\r';
+	
+	var string = stringIN;
+	var length = string.length;
+	var position = 0;
+	var output = [];
+	
+	function getCurrentCharacter () {
+		return string.charAt(position);
+	}
+ 
+	function getPreviousCharacter () {
+		return string.charAt(position - 1);
+	}
+ 
+	function getNextCharacter () {
+		return string.charAt(position + 1);
+	}
+ 
+	function add () {
+		output.push(getCurrentCharacter());
+	}
+ 
+	function next () {
+		position++;
+	}
+ 
+	function atEnd () {
+		return position >= length;
+	}
+ 
+	function isEscaping () {
+		if (getPreviousCharacter() == BACK_SLASH) {
+			var caret = position - 1;
+			var escaped = true;
+			while (caret-- > 0) {
+				if (string.charAt(caret) != BACK_SLASH) {
+					return escaped;
+				}
+				escaped = !escaped;
+			}
+			return escaped;
+		}
+		return false;
+	}
+ 
+	function processSingleQuotedString () {
+		if (getCurrentCharacter() == SINGLE_QUOTE) {
+			add();
+			next();
+			while (!atEnd()) {
+				if (getCurrentCharacter() == SINGLE_QUOTE && !isEscaping()) {
+					return;
+				}
+				add();
+				next();
+			}
+		}
+	}
+ 
+	function processDoubleQuotedString () {
+		if (getCurrentCharacter() == DOUBLE_QUOTE) {
+			add();
+			next();
+			while (!atEnd()) {
+				if (getCurrentCharacter() == DOUBLE_QUOTE && !isEscaping()) {
+					return;
+				}
+				add();
+				next();
+			}
+		}
+	}
+ 
+	function processSingleLineComment () {
+		if (getCurrentCharacter() == SLASH) {
+			if (getNextCharacter() == SLASH) {
+				next();
+				while (!atEnd()) {
+					next();
+					if (getCurrentCharacter() == NEW_LINE || getCurrentCharacter() == CARRIAGE_RETURN) {
+						return;
+					}
+				}
+			}
+		}
+	}
+ 
+	function processMultiLineComment () {
+		if (getCurrentCharacter() == SLASH) {
+			if (getNextCharacter() == STAR) {
+				next();
+				next();
+				while (!atEnd()) {
+					next();
+					if (getCurrentCharacter() == STAR) {
+						if (getNextCharacter() == SLASH) {
+							next();
+							next();
+							return;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	function processRegularExpression (){
+		if (getCurrentCharacter() == SLASH) {
+			add();
+			next();
+			while (!atEnd()) {
+				if (getCurrentCharacter() == SLASH && !isEscaping()) {
+					return;
+				}
+				add();
+				next();
+			}
+		}
+	}
+ 
+	while (!atEnd()) {
+		processDoubleQuotedString();
+		processSingleQuotedString();
+		processSingleLineComment();
+		processMultiLineComment();
+		processRegularExpression();
+		if (!atEnd()) {
+			add();
+			next();
+		}
+	}
+	return output.join('');
+ 
+};
+
+
 
 function writeFile(data){
 	fs.writeFile(options.output, data, function (err) {
@@ -75,11 +219,17 @@ function checkArgv(){//checks the arguments sent in from the process, essentiall
 	}
 
 	if(args.length > 1){
-		options.output = args[3];
+		if(args[1] === "yes" || args[1] === "no"){
+			options.comments = args[1];
+		}
 	}
 
 	if(args.length > 2){
-		options.input = args[2];
+		options.output = args[2];
+	}
+
+	if(args.length > 3){
+		options.input = args[3];
 	}
 
 	fs.readFile(options.input,options, function (err, data) {
